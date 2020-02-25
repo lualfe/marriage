@@ -1,0 +1,1 @@
+COCKROACH_STRING: "postgresql://marriageroach@localhost:26257/marriage?sslmode=disable"
