@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	"github.com/lualfe/casamento/app"
 	"github.com/lualfe/casamento/web"
 	"github.com/spf13/viper"
@@ -38,6 +39,9 @@ func main() {
 		e.Logger.Printf("error initializing database: %v", err)
 		panic(err)
 	}
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: "method=${method}, uri=${uri}, status=${status}\n",
+	}))
 	w.InitRoutes(e)
 	e.Logger.Fatal(e.Start(":1323"))
 }
