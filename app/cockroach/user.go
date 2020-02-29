@@ -1,6 +1,8 @@
 package cockroach
 
 import (
+	"net/http"
+
 	"github.com/google/uuid"
 	"github.com/lualfe/casamento/app/responsewriter"
 	"github.com/lualfe/casamento/models"
@@ -20,7 +22,7 @@ func (a *DB) FindUser(id string) (*models.User, responsewriter.Response) {
 func (a *DB) CreateUser(user *models.User) (*models.User, responsewriter.Response) {
 	// validate info
 	if len(user.Password) < 6 {
-		return nil, responsewriter.BadRequestError("password must be at least 6 characters long")
+		return nil, responsewriter.Error("password must be at least 6 characters long", http.StatusBadRequest)
 	}
 
 	// check if user already exists
@@ -29,7 +31,7 @@ func (a *DB) CreateUser(user *models.User) (*models.User, responsewriter.Respons
 		return nil, responsewriter.UnexpectedError(err)
 	}
 	if count > 0 {
-		return nil, responsewriter.BadRequestError("user already exists")
+		return nil, responsewriter.Error("user already exists", http.StatusBadRequest)
 	}
 
 	// inserts into the database
@@ -52,7 +54,7 @@ func (a *DB) LoginUser(email, password string) (*models.User, responsewriter.Res
 		return nil, responsewriter.UnexpectedError(err)
 	}
 	if !utils.ComparePassword(password, user.Password) {
-		return nil, responsewriter.BadRequestError("email or password incorrect")
+		return nil, responsewriter.Error("email or password incorrect", http.StatusUnauthorized)
 	}
 	return user, responsewriter.Success()
 }

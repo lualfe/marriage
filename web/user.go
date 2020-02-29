@@ -6,6 +6,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
+	"github.com/lualfe/casamento/app/responsewriter"
 	"github.com/lualfe/casamento/models"
 	"github.com/lualfe/casamento/utils"
 	"github.com/spf13/viper"
@@ -19,7 +20,8 @@ func (w *Web) FindUser(c echo.Context) error {
 // CreateUser creates an user and an session
 func (w *Web) CreateUser(c echo.Context) error {
 	if c.Get("id") != nil {
-		c.String(http.StatusForbidden, "user already logged in")
+		response := responsewriter.Redirect("user already logged in", http.StatusMovedPermanently)
+		response.JSON(c, "")
 		return nil
 	}
 	values, _ := c.FormParams()

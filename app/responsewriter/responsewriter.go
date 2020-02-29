@@ -38,10 +38,22 @@ func UnexpectedError(err error) Response {
 	}
 }
 
-// BadRequestError returns an error from a bad request
-func BadRequestError(message string) Response {
+// Error returns an error from a request
+func Error(message string, code int) Response {
 	return Response{
-		Code:     http.StatusBadRequest,
+		Code:     code,
+		Message:  message,
+		Internal: nil,
+	}
+}
+
+// Redirect handles responses when redirects are needed
+func Redirect(message string, code int) Response {
+	if code < 300 || code >= 400 {
+		return Response{}
+	}
+	return Response{
+		Code:     code,
 		Message:  message,
 		Internal: nil,
 	}
