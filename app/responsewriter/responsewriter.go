@@ -14,7 +14,7 @@ type Response struct {
 }
 
 // JSON method treats the json object that will be formed
-func (r *Response) JSON(c echo.Context, body interface{}) {
+func (r Response) JSON(c echo.Context, body interface{}) {
 	switch r.Code {
 	case http.StatusOK:
 		if body == nil {
@@ -30,8 +30,8 @@ func (r *Response) JSON(c echo.Context, body interface{}) {
 }
 
 // UnexpectedError returns an response struct from unexpected errors
-func UnexpectedError(err error) *Response {
-	return &Response{
+func UnexpectedError(err error) Response {
+	return Response{
 		Code:     http.StatusInternalServerError,
 		Message:  err.Error(),
 		Internal: err,
@@ -39,8 +39,8 @@ func UnexpectedError(err error) *Response {
 }
 
 // BadRequestError returns an error from a bad request
-func BadRequestError(message string) *Response {
-	return &Response{
+func BadRequestError(message string) Response {
+	return Response{
 		Code:     http.StatusBadRequest,
 		Message:  message,
 		Internal: nil,
@@ -48,8 +48,8 @@ func BadRequestError(message string) *Response {
 }
 
 // Success returns an successful response
-func Success() *Response {
-	return &Response{
+func Success() Response {
+	return Response{
 		Code:     http.StatusOK,
 		Message:  "",
 		Internal: nil,
