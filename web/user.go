@@ -19,11 +19,13 @@ func (w *Web) FindUser(c echo.Context) error {
 
 // CreateUser creates an user and an session
 func (w *Web) CreateUser(c echo.Context) error {
+	// checks if user is logged in
 	if c.Get("id") != nil {
 		response := responsewriter.Redirect("user already logged in", http.StatusMovedPermanently)
 		response.JSON(c, "")
 		return nil
 	}
+
 	values, _ := c.FormParams()
 	user := &models.User{
 		Email:    values.Get("email"),
@@ -61,8 +63,9 @@ func (w *Web) CreateUser(c echo.Context) error {
 // LoginUser logs the user in
 func (w *Web) LoginUser(c echo.Context) error {
 	// checks if user is logged
-	checkUser := c.Get("user")
-	if checkUser != nil {
+	if c.Get("id") != nil {
+		response := responsewriter.Redirect("user already logged in", http.StatusMovedPermanently)
+		response.JSON(c, "")
 		return nil
 	}
 
@@ -70,15 +73,18 @@ func (w *Web) LoginUser(c echo.Context) error {
 	password := c.FormValue("password")
 	user, r := w.App.Cockroach.LoginUser(email, password)
 	if r.Code == http.StatusOK {
-		token := jwt.New(jwt.SigningMethodES256)
-		claims := token.Claims.(jwt.MapClaims)
-		claims["id"] = user.ID
-		claims["email"] = user.Email
-		claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+		claims := &utils.JWTClaims{
+			ID:    user.ID.String(),
+			Email: user.Email,
+		}
+		claims.ExpiresAt = time.Now().Add(time.Hour * 72).Unix()
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 		t, err := token.SignedString([]byte(viper.GetString("jwt_key")))
 		if err != nil {
 			return err
 		}
+		c.Set("id", user.ID)
+		c.Set("email", user.Email)
 		type finalResponse struct {
 			User  *models.User `json:"user"`
 			Token string       `json:"access_token"`

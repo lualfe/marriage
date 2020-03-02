@@ -11,6 +11,7 @@ import (
 func (w *Web) InitRoutes(e *echo.Echo) {
 	// Routes that does not require auth
 	e.POST("/user/register", w.CreateUser, utils.CheckToken)
+	e.POST("/user/login", w.LoginUser, utils.CheckToken)
 
 	// Routes that require auth
 	userAuthRequired := e.Group("/user")
