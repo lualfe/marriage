@@ -6,9 +6,19 @@ import (
 	"github.com/lualfe/casamento/utils"
 )
 
+// ProductGather gathers all products related interfaces
+type ProductGather interface {
+	ProductFinder
+	CompareProducts
+}
+
 // ProductFinder is responsible for finding products
 type ProductFinder interface {
 	Finder(a *DB) ([]*models.Product, responsewriter.Response)
+}
+
+// CompareProducts is responsible for comparing products
+type CompareProducts interface {
 	CompareField(now, before []*models.Product) []*models.Product
 }
 
@@ -125,7 +135,7 @@ func (f *BrandFinder) CompareField(now, before []*models.Product) []*models.Prod
 
 // MultipleFinder model
 type MultipleFinder struct {
-	Multiple []ProductFinder
+	Multiple []ProductGather
 }
 
 // Finder gets the list of products from a multiple fields
@@ -142,19 +152,6 @@ func (f *MultipleFinder) Finder(a *DB) ([]*models.Product, responsewriter.Respon
 	}
 	noDuplicates := utils.Unique(products)
 	return noDuplicates, responsewriter.Success()
-}
-
-// CompareField compares a field on two different products
-func (f *MultipleFinder) CompareField(now, before []*models.Product) []*models.Product {
-	products := []*models.Product{}
-	for _, n := range now {
-		for _, b := range before {
-			if n == b {
-				products = append(products, b)
-			}
-		}
-	}
-	return products
 }
 
 // FindProducts gets all the products
