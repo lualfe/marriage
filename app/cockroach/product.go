@@ -20,7 +20,6 @@ type ProductFinder interface {
 
 // ProductsRepository is responsible for comparing products
 type ProductsRepository interface {
-	CompareField(now, before []*models.Product) []*models.Product
 	QueryBuild() (string, interface{})
 }
 
@@ -36,19 +35,6 @@ func (f *UserIDFinder) Finder(a *DB) ([]*models.Product, responsewriter.Response
 		return nil, responsewriter.UnexpectedError(err)
 	}
 	return products, responsewriter.Success()
-}
-
-// CompareField compares a field on two different products
-func (f *UserIDFinder) CompareField(now, before []*models.Product) []*models.Product {
-	products := []*models.Product{}
-	for _, n := range now {
-		for _, b := range before {
-			if n.UserID == b.UserID {
-				products = append(products, b)
-			}
-		}
-	}
-	return products
 }
 
 // QueryBuild builds the cockroach query
@@ -71,19 +57,6 @@ func (f *RoomFinder) Finder(a *DB) ([]*models.Product, responsewriter.Response) 
 	return products, responsewriter.Success()
 }
 
-// CompareField compares a field on two different products
-func (f *RoomFinder) CompareField(now, before []*models.Product) []*models.Product {
-	products := []*models.Product{}
-	for _, n := range now {
-		for _, b := range before {
-			if n.Room == b.Room {
-				products = append(products, b)
-			}
-		}
-	}
-	return products
-}
-
 // QueryBuild builds the cockroach query
 func (f *RoomFinder) QueryBuild() (string, interface{}) {
 	return "LOWER(room) = LOWER(?)", f.Room
@@ -104,19 +77,6 @@ func (f *NameFinder) Finder(a *DB) ([]*models.Product, responsewriter.Response) 
 	return products, responsewriter.Success()
 }
 
-// CompareField compares a field on two different products
-func (f *NameFinder) CompareField(now, before []*models.Product) []*models.Product {
-	products := []*models.Product{}
-	for _, n := range now {
-		for _, b := range before {
-			if n.Name == b.Name {
-				products = append(products, b)
-			}
-		}
-	}
-	return products
-}
-
 // QueryBuild builds the cockroach query
 func (f *NameFinder) QueryBuild() (string, interface{}) {
 	return "LOWER(name) = LOWER(?)", f.Name
@@ -135,19 +95,6 @@ func (f *BrandFinder) Finder(a *DB) ([]*models.Product, responsewriter.Response)
 		return nil, responsewriter.UnexpectedError(err)
 	}
 	return products, responsewriter.Success()
-}
-
-// CompareField compares a field on two different products
-func (f *BrandFinder) CompareField(now, before []*models.Product) []*models.Product {
-	products := []*models.Product{}
-	for _, n := range now {
-		for _, b := range before {
-			if n.Brand == b.Brand {
-				products = append(products, b)
-			}
-		}
-	}
-	return products
 }
 
 // QueryBuild builds the cockroach query
