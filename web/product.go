@@ -33,8 +33,8 @@ func (w *Web) FindProducts(c echo.Context) error {
 	var finder cockroach.ProductFinder
 	switch len(filters) {
 	case 0:
-		finder = &cockroach.IDFinder{
-			ID: id,
+		finder = &cockroach.UserIDFinder{
+			UserID: id,
 		}
 	case 1:
 		switch filters[0] {
@@ -60,9 +60,9 @@ func (w *Web) FindProducts(c echo.Context) error {
 		multipleFinder := &cockroach.MultipleFinder{}
 		for _, filter := range filters {
 			switch filter {
-			case "id":
-				multipleFinder.Multiple = append(multipleFinder.Multiple, &cockroach.IDFinder{
-					ID: id,
+			case "user_id":
+				multipleFinder.Multiple = append(multipleFinder.Multiple, &cockroach.UserIDFinder{
+					UserID: id,
 				})
 			case "room":
 				room := c.QueryParam("room")

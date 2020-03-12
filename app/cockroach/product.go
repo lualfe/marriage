@@ -1,15 +1,16 @@
 package cockroach
 
 import (
+	"strings"
+
 	"github.com/lualfe/casamento/app/responsewriter"
 	"github.com/lualfe/casamento/models"
-	"github.com/lualfe/casamento/utils"
 )
 
 // ProductGather gathers all products related interfaces
 type ProductGather interface {
 	ProductFinder
-	CompareProducts
+	ProductsRepository
 }
 
 // ProductFinder is responsible for finding products
@@ -17,36 +18,42 @@ type ProductFinder interface {
 	Finder(a *DB) ([]*models.Product, responsewriter.Response)
 }
 
-// CompareProducts is responsible for comparing products
-type CompareProducts interface {
+// ProductsRepository is responsible for comparing products
+type ProductsRepository interface {
 	CompareField(now, before []*models.Product) []*models.Product
+	QueryBuild() (string, interface{})
 }
 
-// IDFinder model
-type IDFinder struct {
-	ID string
+// UserIDFinder model
+type UserIDFinder struct {
+	UserID string
 }
 
 // Finder gets the list of products from a user
-func (f *IDFinder) Finder(a *DB) ([]*models.Product, responsewriter.Response) {
+func (f *UserIDFinder) Finder(a *DB) ([]*models.Product, responsewriter.Response) {
 	products := []*models.Product{}
-	if err := a.Instance.Where("user_id = ?", f.ID).Find(&products).Error; err != nil {
+	if err := a.Instance.Where("user_id = ?", f.UserID).Find(&products).Error; err != nil {
 		return nil, responsewriter.UnexpectedError(err)
 	}
 	return products, responsewriter.Success()
 }
 
 // CompareField compares a field on two different products
-func (f *IDFinder) CompareField(now, before []*models.Product) []*models.Product {
+func (f *UserIDFinder) CompareField(now, before []*models.Product) []*models.Product {
 	products := []*models.Product{}
 	for _, n := range now {
 		for _, b := range before {
-			if n.ID == b.ID {
+			if n.UserID == b.UserID {
 				products = append(products, b)
 			}
 		}
 	}
 	return products
+}
+
+// QueryBuild builds the cockroach query
+func (f *UserIDFinder) QueryBuild() (string, interface{}) {
+	return "user_id = ?", f.UserID
 }
 
 // RoomFinder model
@@ -77,6 +84,11 @@ func (f *RoomFinder) CompareField(now, before []*models.Product) []*models.Produ
 	return products
 }
 
+// QueryBuild builds the cockroach query
+func (f *RoomFinder) QueryBuild() (string, interface{}) {
+	return "LOWER(room) = LOWER(?)", f.Room
+}
+
 // NameFinder model
 type NameFinder struct {
 	UserID string
@@ -103,6 +115,11 @@ func (f *NameFinder) CompareField(now, before []*models.Product) []*models.Produ
 		}
 	}
 	return products
+}
+
+// QueryBuild builds the cockroach query
+func (f *NameFinder) QueryBuild() (string, interface{}) {
+	return "LOWER(name) = LOWER(?)", f.Name
 }
 
 // BrandFinder model
@@ -133,6 +150,11 @@ func (f *BrandFinder) CompareField(now, before []*models.Product) []*models.Prod
 	return products
 }
 
+// QueryBuild builds the cockroach query
+func (f *BrandFinder) QueryBuild() (string, interface{}) {
+	return "LOWER(brand) = LOWER(?)", f.Brand
+}
+
 // MultipleFinder model
 type MultipleFinder struct {
 	Multiple []ProductGather
@@ -140,18 +162,19 @@ type MultipleFinder struct {
 
 // Finder gets the list of products from a multiple fields
 func (f *MultipleFinder) Finder(a *DB) ([]*models.Product, responsewriter.Response) {
-	beforeProducts := []*models.Product{}
 	products := []*models.Product{}
+	var gatherQueries []string
+	var gatherParams []interface{}
 	for _, v := range f.Multiple {
-		nowProducts, _ := v.Finder(a)
-		products = v.CompareField(nowProducts, beforeProducts)
-		beforeProducts = products
-		if len(products) == 0 {
-			beforeProducts = nowProducts
-		}
+		query, param := v.QueryBuild()
+		gatherQueries = append(gatherQueries, query)
+		gatherParams = append(gatherParams, param)
 	}
-	noDuplicates := utils.Unique(products)
-	return noDuplicates, responsewriter.Success()
+	finalQuery := strings.Join(gatherQueries, " AND ")
+	if err := a.Instance.Where(finalQuery, gatherParams...).Find(&products).Error; err != nil {
+		return nil, responsewriter.UnexpectedError(err)
+	}
+	return products, responsewriter.Success()
 }
 
 // FindProducts gets all the products
