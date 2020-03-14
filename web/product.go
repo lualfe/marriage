@@ -4,15 +4,15 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo"
 	"github.com/lualfe/casamento/app/cockroach"
-	"github.com/lualfe/casamento/app/responsewriter"
 	"github.com/lualfe/casamento/models"
 	"github.com/lualfe/casamento/utils"
 )
 
 // FindProducts finds the products
 func (w *Web) FindProducts(c echo.Context) error {
-	jwt := utils.JWTGetter(c, "id")
-	id := jwt[0].(string)
+	jwt := utils.JWTGetter(c, "couple_id")
+	cID := jwt[0].(string)
+	coupleID, _ := uuid.Parse(cID)
 
 	// set list of filters
 	filters := make([]string, 0)
@@ -33,27 +33,27 @@ func (w *Web) FindProducts(c echo.Context) error {
 	var finder cockroach.ProductFinder
 	switch len(filters) {
 	case 0:
-		finder = &cockroach.UserIDFinder{
-			UserID: id,
+		finder = &cockroach.CoupleIDFinder{
+			CoupleID: coupleID,
 		}
 	case 1:
 		switch filters[0] {
 		case "room":
 			finder = &cockroach.RoomFinder{
-				UserID: id,
-				Room:   room,
+				CoupleID: coupleID,
+				Room:     room,
 			}
 		case "brand":
 			brand := c.QueryParam("brand")
 			finder = &cockroach.BrandFinder{
-				UserID: id,
-				Brand:  brand,
+				CoupleID: coupleID,
+				Brand:    brand,
 			}
 		case "name":
 			name := c.QueryParam("name")
 			finder = &cockroach.NameFinder{
-				UserID: id,
-				Name:   name,
+				CoupleID: coupleID,
+				Name:     name,
 			}
 		}
 	default:
@@ -61,26 +61,26 @@ func (w *Web) FindProducts(c echo.Context) error {
 		for _, filter := range filters {
 			switch filter {
 			case "user_id":
-				multipleFinder.Multiple = append(multipleFinder.Multiple, &cockroach.UserIDFinder{
-					UserID: id,
+				multipleFinder.Multiple = append(multipleFinder.Multiple, &cockroach.CoupleIDFinder{
+					CoupleID: coupleID,
 				})
 			case "room":
 				room := c.QueryParam("room")
 				multipleFinder.Multiple = append(multipleFinder.Multiple, &cockroach.RoomFinder{
-					UserID: id,
-					Room:   room,
+					CoupleID: coupleID,
+					Room:     room,
 				})
 			case "brand":
 				brand := c.QueryParam("brand")
 				multipleFinder.Multiple = append(multipleFinder.Multiple, &cockroach.BrandFinder{
-					UserID: id,
-					Brand:  brand,
+					CoupleID: coupleID,
+					Brand:    brand,
 				})
 			case "name":
 				name := c.QueryParam("name")
 				multipleFinder.Multiple = append(multipleFinder.Multiple, &cockroach.NameFinder{
-					UserID: id,
-					Name:   name,
+					CoupleID: coupleID,
+					Name:     name,
 				})
 			}
 		}
@@ -93,20 +93,15 @@ func (w *Web) FindProducts(c echo.Context) error {
 
 // UpsertProduct upserts some products
 func (w *Web) UpsertProduct(c echo.Context) error {
-	jwt := utils.JWTGetter(c, "id")
-	userID := jwt[0].(string)
+	jwt := utils.JWTGetter(c, "couple_id")
+	cID := jwt[0].(string)
 	p := &models.Product{}
 	c.Bind(&p)
 	if p.ID == uuid.Nil {
 		p.ID = uuid.New()
 	}
-	userIDAsUUID, err := uuid.Parse(userID)
-	if err != nil {
-		response := responsewriter.UnexpectedError(err)
-		response.JSON(c, "")
-		return nil
-	}
-	p.UserID = userIDAsUUID
+	coupleID, _ := uuid.Parse(cID)
+	p.CoupleID = coupleID
 	product, r := w.App.Cockroach.UpsertProduct(p)
 	r.JSON(c, product)
 	return nil

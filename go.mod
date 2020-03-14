@@ -3,11 +3,13 @@ module github.com/lualfe/casamento
 go 1.13
 
 require (
+	github.com/aws/aws-sdk-go v1.29.24 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/sessions v1.2.0 // indirect
 	github.com/jinzhu/gorm v1.9.12
+	github.com/jmespath/go-jmespath v0.3.0 // indirect; indirect AWS
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/lib/pq v1.3.0
@@ -26,6 +28,8 @@ require (
 	golang.org/x/net v0.0.0-20200222125558-5a598a2470a0 // indirect
 	golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae // indirect
 	golang.org/x/text v0.3.2 // indirect
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
+	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gopkg.in/ini.v1 v1.52.0 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )

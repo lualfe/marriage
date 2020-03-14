@@ -10,8 +10,9 @@ import (
 
 // JWTClaims model.
 type JWTClaims struct {
-	ID    string `json:"id"`
-	Email string `json:"email"`
+	UserID   string `json:"user_id"`
+	CoupleID string `json:"couple_id"`
+	Email    string `json:"email"`
 	jwt.StandardClaims
 }
 
@@ -38,7 +39,7 @@ func CheckToken(next echo.HandlerFunc) echo.HandlerFunc {
 				return []byte(viper.GetString("jwt_key")), nil
 			})
 			if t != nil {
-				c.Set("id", claims.ID)
+				c.Set("user_id", claims.UserID)
 				c.Set("email", claims.Email)
 			}
 		}

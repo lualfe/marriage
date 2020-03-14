@@ -3,6 +3,7 @@ package cockroach
 import (
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/lualfe/casamento/app/responsewriter"
 	"github.com/lualfe/casamento/models"
 )
@@ -23,35 +24,35 @@ type ProductsRepository interface {
 	QueryBuild() (string, interface{})
 }
 
-// UserIDFinder model
-type UserIDFinder struct {
-	UserID string
+// CoupleIDFinder model
+type CoupleIDFinder struct {
+	CoupleID uuid.UUID
 }
 
-// Finder gets the list of products from a user
-func (f *UserIDFinder) Finder(a *DB) ([]*models.Product, responsewriter.Response) {
+// Finder gets the list of products from a couple
+func (f *CoupleIDFinder) Finder(a *DB) ([]*models.Product, responsewriter.Response) {
 	products := []*models.Product{}
-	if err := a.Instance.Where("user_id = ?", f.UserID).Find(&products).Error; err != nil {
+	if err := a.Instance.Where("couple_id = ?", f.CoupleID).Find(&products).Error; err != nil {
 		return nil, responsewriter.UnexpectedError(err)
 	}
 	return products, responsewriter.Success()
 }
 
 // QueryBuild builds the cockroach query
-func (f *UserIDFinder) QueryBuild() (string, interface{}) {
-	return "user_id = ?", f.UserID
+func (f *CoupleIDFinder) QueryBuild() (string, interface{}) {
+	return "couple_id = ?", f.CoupleID
 }
 
 // RoomFinder model
 type RoomFinder struct {
-	UserID string
-	Room   string
+	CoupleID uuid.UUID
+	Room     string
 }
 
 // Finder gets the list of products from a room
 func (f *RoomFinder) Finder(a *DB) ([]*models.Product, responsewriter.Response) {
 	products := []*models.Product{}
-	if err := a.Instance.Where("user_id = ? and room = ?", f.UserID, f.Room).Find(&products).Error; err != nil {
+	if err := a.Instance.Where("couple_id = ? and room = ?", f.CoupleID, f.Room).Find(&products).Error; err != nil {
 		return nil, responsewriter.UnexpectedError(err)
 	}
 	return products, responsewriter.Success()
@@ -64,14 +65,14 @@ func (f *RoomFinder) QueryBuild() (string, interface{}) {
 
 // NameFinder model
 type NameFinder struct {
-	UserID string
-	Name   string
+	CoupleID uuid.UUID
+	Name     string
 }
 
 // Finder gets the list of products from a product name
 func (f *NameFinder) Finder(a *DB) ([]*models.Product, responsewriter.Response) {
 	products := []*models.Product{}
-	if err := a.Instance.Where("user_id = ? and name = ?", f.UserID, f.Name).Find(&products).Error; err != nil {
+	if err := a.Instance.Where("couple_id = ? and name = ?", f.CoupleID, f.Name).Find(&products).Error; err != nil {
 		return nil, responsewriter.UnexpectedError(err)
 	}
 	return products, responsewriter.Success()
@@ -84,14 +85,14 @@ func (f *NameFinder) QueryBuild() (string, interface{}) {
 
 // BrandFinder model
 type BrandFinder struct {
-	UserID string
-	Brand  string
+	CoupleID uuid.UUID
+	Brand    string
 }
 
 // Finder gets the list of products from a brand
 func (f *BrandFinder) Finder(a *DB) ([]*models.Product, responsewriter.Response) {
 	products := []*models.Product{}
-	if err := a.Instance.Where("user_id = ? and brand = ?", f.UserID, f.Brand).Find(&products).Error; err != nil {
+	if err := a.Instance.Where("couple_id = ? and brand = ?", f.CoupleID, f.Brand).Find(&products).Error; err != nil {
 		return nil, responsewriter.UnexpectedError(err)
 	}
 	return products, responsewriter.Success()
