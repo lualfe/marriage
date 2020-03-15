@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo"
 	"github.com/lualfe/casamento/app/cockroach"
+	"github.com/lualfe/casamento/app/responsewriter"
 	"github.com/lualfe/casamento/models"
 	"github.com/lualfe/casamento/utils"
 )
@@ -27,6 +28,13 @@ func (w *Web) FindProducts(c echo.Context) error {
 	name := c.QueryParam("name")
 	if name != "" {
 		filters = append(filters, "name")
+	}
+
+	defaultParams := NewQueryParams()
+	if err := c.Bind(defaultParams); err != nil {
+		response := responsewriter.UnexpectedError(err)
+		response.JSON(c, "")
+		return nil
 	}
 
 	// set product finder interface
@@ -86,7 +94,7 @@ func (w *Web) FindProducts(c echo.Context) error {
 		}
 		finder = multipleFinder
 	}
-	p, r := w.App.Cockroach.FindProducts(finder)
+	p, r := w.App.Cockroach.FindProducts(finder, defaultParams)
 	r.JSON(c, p)
 	return nil
 }
@@ -96,7 +104,11 @@ func (w *Web) UpsertProduct(c echo.Context) error {
 	jwt := utils.JWTGetter(c, "couple_id")
 	cID := jwt[0].(string)
 	p := &models.Product{}
-	c.Bind(&p)
+	c.Bind(p)
+	if c.Param("id") != "" {
+		productID, _ := uuid.Parse(c.Param("id"))
+		p.ID = productID
+	}
 	if p.ID == uuid.Nil {
 		p.ID = uuid.New()
 	}

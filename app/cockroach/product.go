@@ -16,7 +16,7 @@ type ProductGather interface {
 
 // ProductFinder is responsible for finding products
 type ProductFinder interface {
-	Finder(a *DB) ([]*models.Product, responsewriter.Response)
+	Finder(a *DB, params *models.QueryParam) ([]*models.Product, responsewriter.Response)
 }
 
 // ProductsRepository is responsible for comparing products
@@ -30,9 +30,13 @@ type CoupleIDFinder struct {
 }
 
 // Finder gets the list of products from a couple
-func (f *CoupleIDFinder) Finder(a *DB) ([]*models.Product, responsewriter.Response) {
+func (f *CoupleIDFinder) Finder(a *DB, params *models.QueryParam) ([]*models.Product, responsewriter.Response) {
 	products := []*models.Product{}
-	if err := a.Instance.Where("couple_id = ?", f.CoupleID).Find(&products).Error; err != nil {
+	if err := a.Instance.
+		Where("couple_id = ?", f.CoupleID).
+		Limit(params.PageSize).
+		Offset((params.Page - 1) * params.PageSize).
+		Find(&products).Error; err != nil {
 		return nil, responsewriter.UnexpectedError(err)
 	}
 	return products, responsewriter.Success()
@@ -50,9 +54,12 @@ type RoomFinder struct {
 }
 
 // Finder gets the list of products from a room
-func (f *RoomFinder) Finder(a *DB) ([]*models.Product, responsewriter.Response) {
+func (f *RoomFinder) Finder(a *DB, params *models.QueryParam) ([]*models.Product, responsewriter.Response) {
 	products := []*models.Product{}
-	if err := a.Instance.Where("couple_id = ? and room = ?", f.CoupleID, f.Room).Find(&products).Error; err != nil {
+	if err := a.Instance.Where("couple_id = ? and room = ?", f.CoupleID, f.Room).
+		Limit(params.PageSize).
+		Offset((params.Page - 1) * params.PageSize).
+		Find(&products).Error; err != nil {
 		return nil, responsewriter.UnexpectedError(err)
 	}
 	return products, responsewriter.Success()
@@ -70,9 +77,12 @@ type NameFinder struct {
 }
 
 // Finder gets the list of products from a product name
-func (f *NameFinder) Finder(a *DB) ([]*models.Product, responsewriter.Response) {
+func (f *NameFinder) Finder(a *DB, params *models.QueryParam) ([]*models.Product, responsewriter.Response) {
 	products := []*models.Product{}
-	if err := a.Instance.Where("couple_id = ? and name = ?", f.CoupleID, f.Name).Find(&products).Error; err != nil {
+	if err := a.Instance.Where("couple_id = ? and name = ?", f.CoupleID, f.Name).
+		Limit(params.PageSize).
+		Offset((params.Page - 1) * params.PageSize).
+		Find(&products).Error; err != nil {
 		return nil, responsewriter.UnexpectedError(err)
 	}
 	return products, responsewriter.Success()
@@ -90,9 +100,12 @@ type BrandFinder struct {
 }
 
 // Finder gets the list of products from a brand
-func (f *BrandFinder) Finder(a *DB) ([]*models.Product, responsewriter.Response) {
+func (f *BrandFinder) Finder(a *DB, params *models.QueryParam) ([]*models.Product, responsewriter.Response) {
 	products := []*models.Product{}
-	if err := a.Instance.Where("couple_id = ? and brand = ?", f.CoupleID, f.Brand).Find(&products).Error; err != nil {
+	if err := a.Instance.Where("couple_id = ? and brand = ?", f.CoupleID, f.Brand).
+		Limit(params.PageSize).
+		Offset((params.Page - 1) * params.PageSize).
+		Find(&products).Error; err != nil {
 		return nil, responsewriter.UnexpectedError(err)
 	}
 	return products, responsewriter.Success()
@@ -109,7 +122,7 @@ type MultipleFinder struct {
 }
 
 // Finder gets the list of products from a multiple fields
-func (f *MultipleFinder) Finder(a *DB) ([]*models.Product, responsewriter.Response) {
+func (f *MultipleFinder) Finder(a *DB, params *models.QueryParam) ([]*models.Product, responsewriter.Response) {
 	products := []*models.Product{}
 	var gatherQueries []string
 	var gatherParams []interface{}
@@ -119,15 +132,17 @@ func (f *MultipleFinder) Finder(a *DB) ([]*models.Product, responsewriter.Respon
 		gatherParams = append(gatherParams, param)
 	}
 	finalQuery := strings.Join(gatherQueries, " AND ")
-	if err := a.Instance.Where(finalQuery, gatherParams...).Find(&products).Error; err != nil {
+	if err := a.Instance.Where(finalQuery, gatherParams...).
+		Limit(params.PageSize).
+		Offset((params.Page - 1) * params.PageSize).Find(&products).Error; err != nil {
 		return nil, responsewriter.UnexpectedError(err)
 	}
 	return products, responsewriter.Success()
 }
 
 // FindProducts gets all the products
-func (a *DB) FindProducts(finder ProductFinder) ([]*models.Product, responsewriter.Response) {
-	products, response := finder.Finder(a)
+func (a *DB) FindProducts(finder ProductFinder, params *models.QueryParam) ([]*models.Product, responsewriter.Response) {
+	products, response := finder.Finder(a, params)
 	return products, response
 }
 

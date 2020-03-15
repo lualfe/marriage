@@ -18,6 +18,13 @@ func (w *Web) InitRoutes(e *echo.Echo) {
 	userAuthRequired := e.Group("/user")
 	userAuthRequired.Use(middleware.JWT([]byte(viper.GetString("jwt_key"))))
 	userAuthRequired.GET("/couple/invite", w.PartnerInvite)
+	userAuthRequired.GET("/expenses", w.FindExpenses)
+	userAuthRequired.GET("/income", w.FindMonthlyIncome)
 	userAuthRequired.GET("/products", w.FindProducts)
+	userAuthRequired.POST("/expense", w.UpsertExpense)
+	userAuthRequired.POST("/income", w.UpsertMonthlyIncome)
 	userAuthRequired.POST("/product", w.UpsertProduct)
+	userAuthRequired.PUT("/expense/:id", w.UpsertExpense)
+	userAuthRequired.PUT("/income", w.UpsertMonthlyIncome)
+	userAuthRequired.PUT("/product/:id", w.UpsertProduct)
 }
